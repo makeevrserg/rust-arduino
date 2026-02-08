@@ -4,27 +4,28 @@
 mod math;
 mod geometry;
 
-use core::panic::PanicInfo;
 use ufmt::uWrite;
 
 use arduino_hal::I2c;
 use embedded_graphics::{
     geometry::Point,
     pixelcolor::BinaryColor,
-    prelude::*,
-    primitives::Line,
     Drawable,
 };
 use ssd1306::{
-    prelude::*,
     I2CDisplayInterface,
     Ssd1306,
 };
 
-use crate::math::math::{cos_fast, sin_fast};
+use crate::geometry::geometry::Square;
 use arduino_hal::delay_ms;
-use embedded_graphics::primitives::PrimitiveStyle;
-use crate::math::point::rotate_point;
+use embedded_graphics::draw_target::DrawTarget;
+use embedded_graphics::geometry::OriginDimensions;
+use embedded_graphics::prelude::Primitive;
+use embedded_graphics::primitives::{Line, PrimitiveStyle};
+use ssd1306::mode::DisplayConfig;
+use ssd1306::rotation::DisplayRotation;
+use ssd1306::size::DisplaySize128x64;
 
 #[macro_export]
 macro_rules! info {
@@ -67,11 +68,7 @@ fn main() -> ! {
     display.clear(BinaryColor::Off).unwrap();
 
 
-    let cx = (display.size().width / 2) as i32;
-    let cy = (display.size().height / 2) as i32;
-    let w = 30;
-    let h = 30;
-
+    let center = Point::new((display.size().width / 2) as i32, (display.size().height / 2) as i32);
     let mut angle: i32 = 0; // milli-radians
 
     let mut led = pins.d13.into_output();
@@ -79,30 +76,24 @@ fn main() -> ! {
         led.toggle();
         display.clear(BinaryColor::Off).unwrap();
 
-        let corners = [
-            Point::new(cx - w / 2, cy - h / 2),
-            Point::new(cx + w / 2, cy - h / 2),
-            Point::new(cx + w / 2, cy + h / 2),
-            Point::new(cx - w / 2, cy + h / 2),
-        ];
 
-
-        // rotate and draw
-        for i in 0..4 {
+        let square = Square::new(30, center);
+        let square_rotated = square.rotate(angle, center);
+        let corners = square_rotated.corners();
+        for i in 0..corners.iter().len() {
             let p1 = corners[i];
             let p2 = corners[(i + 1) % 4];
-            let p1r = rotate_point(p1, cx, cy, angle);
-            let p2r = rotate_point(p2, cx, cy, angle);
 
-            // Draw the line
-            Line::new(p1r, p2r)
+            Line::new(p1, p2)
                 .into_styled(PrimitiveStyle::with_stroke(BinaryColor::On, 1))
                 .draw(&mut display)
                 .unwrap();
         }
+
+
         display.flush().unwrap();
 
-        angle += 90; // Increment by 5 milli-radians
+        angle += 45; // Increment by 5 milli-radians
 
         ufmt::uwriteln!(serial,"angle: {}",angle);
 
