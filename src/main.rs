@@ -3,19 +3,16 @@
 
 mod math;
 
-use ufmt::{uWrite, uwriteln};
-use math::math::{sin, cos};
+use core::panic::PanicInfo;
+use ufmt::uWrite;
 
-use panic_halt as _;
-use arduino_hal::{I2c, Usart};
+use arduino_hal::I2c;
 use embedded_graphics::{
+    geometry::Point,
     pixelcolor::BinaryColor,
     prelude::*,
     primitives::Line,
-    geometry::Point,
     Drawable,
-    mono_font::{MonoTextStyle, ascii::FONT_6X10},
-    text::{Text, Baseline},
 };
 use ssd1306::{
     prelude::*,
@@ -23,9 +20,8 @@ use ssd1306::{
     Ssd1306,
 };
 
+use crate::math::math::{cos_fast, sin_fast};
 use arduino_hal::delay_ms;
-use arduino_hal::hal::Atmega;
-use arduino_hal::pac::USART0;
 use embedded_graphics::primitives::PrimitiveStyle;
 
 #[macro_export]
@@ -33,6 +29,12 @@ macro_rules! info {
     ($logger:expr, $($arg:tt)*) => {
         let _ = ufmt::uwriteln!(&mut $logger.serial, $($arg)*);
     };
+}
+
+
+#[panic_handler]
+fn my_panic(_info: &core::panic::PanicInfo) -> ! {
+    loop {}
 }
 
 #[arduino_hal::entry]
@@ -48,7 +50,7 @@ fn main() -> ! {
         dp.TWI,
         pins.a4.into_pull_up_input(),
         pins.a5.into_pull_up_input(),
-        100_000,
+        600_000,
     );
 
     let interface = I2CDisplayInterface::new(i2c);
@@ -98,7 +100,7 @@ fn main() -> ! {
         }
         display.flush().unwrap();
 
-        angle += 180; // Increment by 5 milli-radians
+        angle += 90; // Increment by 5 milli-radians
 
         ufmt::uwriteln!(serial,"angle: {}",angle);
 
@@ -111,18 +113,18 @@ fn rotate_point(p: Point, cx: i32, cy: i32, angle: i32) -> Point {
     // Convert milli-radians to degrees (1000 milli-radians = 1 radian)
     let angle_rad = (angle as f32) / 1000.0;
     let angle_deg = angle_rad * 180.0 / core::f32::consts::PI;
-    
+
     // Translate point to origin
     let x = (p.x - cx) as f32;
     let y = (p.y - cy) as f32;
-    
+
     // Apply rotation matrix
-    let cos_a = cos(angle_deg);
-    let sin_a = sin(angle_deg);
-    
+    let cos_a = cos_fast(angle_deg);
+    let sin_a = sin_fast(angle_deg);
+
     let xr = x * cos_a - y * sin_a;
     let yr = x * sin_a + y * cos_a;
-    
+
     // Translate back and round to i32
     Point::new(
         (xr + cx as f32) as i32,
