@@ -1,21 +1,56 @@
-/// Calculates sine of an angle in milli-radians using Taylor series approximation
-/// Returns a fixed-point value scaled by 256 (i.e., 1.0 = 256)
-pub fn sin(angle: i32) -> i32 {
-    const SCALE: i64 = 256;
-    const TWO_PI: i64 = 6283; // 2π in milli-radians
-    let x = ((angle as i64 % TWO_PI) + TWO_PI) % TWO_PI;
-    let x_scaled = x * SCALE;
-    let x2 = (x_scaled * x) / SCALE;
-    let x3 = (x2 * x) / SCALE;
-    let x5 = (x3 * x2) / SCALE;
-    let term1 = x_scaled;
-    let term2 = x3 / 6;
-    let term3 = x5 / 120;
-    ((term1 - term2 + term3) / SCALE).clamp(-256, 255) as i32
+#![no_std]
+
+use core::f32::consts::PI;
+
+/// Normalize angle in radians to range [-PI, PI]
+fn normalize_radians(mut x: f32) -> f32 {
+    let two_pi = 2.0 * PI;
+    x = x % two_pi;
+    if x > PI {
+        x -= two_pi;
+    } else if x < -PI {
+        x += two_pi;
+    }
+    x
 }
 
-/// Calculates cosine of an angle in milli-radians using phase-shifted sine
-/// Returns a fixed-point value scaled by 256 (i.e., 1.0 = 256)
-pub fn cos(angle: i32) -> i32 {
-    sin(angle + 1571) // π/2 in milli-radians
+/// Convert degrees to radians
+fn deg_to_rad(deg: f32) -> f32 {
+    deg * PI / 180.0
+}
+
+/// Sine using Taylor series
+pub fn sin(deg: f32) -> f32 {
+    let mut x = deg_to_rad(deg);
+    x = normalize_radians(x);
+
+    let mut term = x; // first term
+    let mut sum = x;
+
+    // Taylor series: sin(x) = x - x³/3! + x⁵/5! - ...
+    for i in 1..10 {
+        let n = (2 * i) as f32;
+        term *= -x * x / (n * (n + 1.0));
+        sum += term;
+    }
+
+    sum
+}
+
+/// Cosine using Taylor series
+pub fn cos(deg: f32) -> f32 {
+    let mut x = deg_to_rad(deg);
+    x = normalize_radians(x);
+
+    let mut term = 1.0;
+    let mut sum = 1.0;
+
+    // Taylor series: cos(x) = 1 - x²/2! + x⁴/4! - ...
+    for i in 1..10 {
+        let n = (2 * i - 1) as f32;
+        term *= -x * x / (n * (n + 1.0));
+        sum += term;
+    }
+
+    sum
 }

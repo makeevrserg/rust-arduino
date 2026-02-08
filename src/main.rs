@@ -14,6 +14,8 @@ use embedded_graphics::{
     primitives::Line,
     geometry::Point,
     Drawable,
+    mono_font::{MonoTextStyle, ascii::FONT_6X10},
+    text::{Text, Baseline},
 };
 use ssd1306::{
     prelude::*,
@@ -25,7 +27,6 @@ use arduino_hal::delay_ms;
 use arduino_hal::hal::Atmega;
 use arduino_hal::pac::USART0;
 use embedded_graphics::primitives::PrimitiveStyle;
-
 
 #[macro_export]
 macro_rules! info {
@@ -54,7 +55,7 @@ fn main() -> ! {
 
     let mut display = Ssd1306::new(
         interface,
-        DisplaySize128x32,
+        DisplaySize128x64,
         DisplayRotation::Rotate0,
     ).into_buffered_graphics_mode();
 
@@ -65,7 +66,7 @@ fn main() -> ! {
     let cx = (display.size().width / 2) as i32;
     let cy = (display.size().height / 2) as i32;
     let w = 30;
-    let h = 10;
+    let h = 30;
 
     let mut angle: i32 = 0; // milli-radians
 
@@ -97,16 +98,8 @@ fn main() -> ! {
         }
         display.flush().unwrap();
 
-        angle += 5; // Increment by 5 milli-radians
+        angle += 180; // Increment by 5 milli-radians
 
-        const TWO_PI_MILLI_RAD: i32 = 6283; // 2π in milli-radians
-
-        // Wrap the angle within 0..6283
-        if angle > TWO_PI_MILLI_RAD {
-            angle -= TWO_PI_MILLI_RAD;
-        } else if angle < 0 {
-            angle += TWO_PI_MILLI_RAD;
-        }
         ufmt::uwriteln!(serial,"angle: {}",angle);
 
         delay_ms(1);
@@ -115,24 +108,24 @@ fn main() -> ! {
 
 
 fn rotate_point(p: Point, cx: i32, cy: i32, angle: i32) -> Point {
-    const TWO_PI_MILLI_RAD: i32 = 6283; // 2π in milli-radians
-    let angle = ((angle % TWO_PI_MILLI_RAD) + TWO_PI_MILLI_RAD) % TWO_PI_MILLI_RAD; // Ensure angle is in 0..6283
-
-    // cos_a and sin_a are scaled by 256 (i.e., 1.0 = 256)
-    let cos_a = cos(angle) as i64; // scaled by 256
-    let sin_a = sin(angle) as i64; // scaled by 256
-
-    // Translate point to origin relative to (cx, cy)
-    let dx = (p.x as i64 - cx as i64);
-    let dy = (p.y as i64 - cy as i64);
-
-    // Perform rotation using fixed-point arithmetic
-    let new_x = (dx * cos_a - dy * sin_a) >> 8; // Divide by 256 using right shift
-    let new_y = (dx * sin_a + dy * cos_a) >> 8; // Divide by 256 using right shift
-
-    // Translate back and clamp to the specified ranges
-    let new_x = (new_x + cx as i64).clamp(0, 127);
-    let new_y = (new_y + cy as i64).clamp(0, 31);
-
-    Point::new(new_x as i32, new_y as i32)
+    // Convert milli-radians to degrees (1000 milli-radians = 1 radian)
+    let angle_rad = (angle as f32) / 1000.0;
+    let angle_deg = angle_rad * 180.0 / core::f32::consts::PI;
+    
+    // Translate point to origin
+    let x = (p.x - cx) as f32;
+    let y = (p.y - cy) as f32;
+    
+    // Apply rotation matrix
+    let cos_a = cos(angle_deg);
+    let sin_a = sin(angle_deg);
+    
+    let xr = x * cos_a - y * sin_a;
+    let yr = x * sin_a + y * cos_a;
+    
+    // Translate back and round to i32
+    Point::new(
+        (xr + cx as f32) as i32,
+        (yr + cy as f32) as i32,
+    )
 }
