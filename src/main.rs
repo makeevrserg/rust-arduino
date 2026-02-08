@@ -51,22 +51,28 @@ fn main() -> ! {
     let mut led = pins.d13.into_output();
 
     let mut angle: i32 = 0;
-    let mut circle_radius = 0;
+    let mut circle_radius = 3;
+    let mut circle_sign = 1;
 
     loop {
         renderer.clear(false);
         let center = renderer.canvas().center();
 
-        // let square = Square::new(center, 30).with_rotation(angle);
-        // square.draw(&mut renderer);
-        let circle = Circle::new(center, 30, true, true);
+        let square = Square::new(center, 30).with_rotation(angle);
+        square.draw(&mut renderer);
+
+        let circle = Circle::new(center, circle_radius, true, true);
         circle.draw(&mut renderer);
 
         renderer.flush();
 
         angle = (angle + 45) % 6283;
-        circle_radius = circle_radius + 1 % 30;
+
+        if (circle_radius <= 0) { circle_sign = 1; } else if (circle_radius >= 16) { circle_sign = -1; }
+        circle_radius = circle_radius + circle_sign;
+
         led.toggle();
-        delay_ms(16);
+
+        delay_ms(10);
     }
 }

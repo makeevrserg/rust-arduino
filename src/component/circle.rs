@@ -21,6 +21,10 @@ impl Circle {
 
 impl Component for Circle {
     fn draw(&self, renderer: &mut dyn Renderer) {
-        renderer.draw_circle(self.center, self.radius, self.color, self.fill);
+        let adjusted_center = Point {
+            x: self.center.x - self.radius,
+            y: self.center.y - self.radius,
+        };
+        renderer.draw_circle(adjusted_center, self.radius, self.color, self.fill);
     }
 }
