@@ -20,8 +20,9 @@ embedded-graphics = "0.8"
 display-interface-i2c = "0.5"
 ssd1306 = "0.8"
 
+
 graphics = { path = "../graphics", features = ["ssd1306"] }
-sensors = { path = "../sensors"}
+sensors = { path = "../common" }
 
 [dependencies.arduino-hal]
 git = "https://github.com/rahix/avr-hal"

@@ -2,9 +2,16 @@
 #![no_main]
 #![allow(dead_code)]
 
-use arduino_hal::delay_ms;
+use arduino_hal::{delay_ms, DefaultClock};
+use arduino_hal::hal::Atmega;
 use arduino_hal::port::Pin;
 use arduino_hal::I2c;
+use arduino_hal::pac::USART0;
+use embedded_graphics::Drawable;
+use embedded_graphics::mono_font::ascii::FONT_6X10;
+use embedded_graphics::mono_font::MonoTextStyle;
+use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::text::Text;
 use embedded_hal::digital::{InputPin, OutputPin};
 use graphics::component::{PulsatingCircle, RotatingSquare};
 use graphics::renderer::embedded_graphics::renderer_impl::EmbeddedGraphicsAdapter;
@@ -16,6 +23,7 @@ use ssd1306::{
     mode::DisplayConfig, rotation::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface,
     Ssd1306,
 };
+use sensors::logger::{Loggable, Logger};
 
 #[panic_handler]
 fn my_panic(_info: &core::panic::PanicInfo) -> ! {
@@ -27,8 +35,8 @@ fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
 
-    let _serial = arduino_hal::default_serial!(dp, pins, 57600);
-
+    let mut _serial = arduino_hal::default_serial!(dp, pins, 57600);
+    let mut loggable = Loggable::new(_serial);
     // I2C on Nano: SDA = A4, SCL = A5
     let i2c = I2c::new(
         dp.TWI,
@@ -69,6 +77,12 @@ fn main() -> ! {
             led.turn_off();
         }
 
+        // let text_style = MonoTextStyle::new(&FONT_6X10, BinaryColor::On);
+        // Text::new("Arduino Nano", Point::new(10, 17), text_style)
+        //     .draw(&mut display)
+        //     .unwrap();
+
+        loggable.log("test log message");
         delay_ms(10);
     }
 }

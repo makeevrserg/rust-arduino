@@ -6,4 +6,5 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 embedded-hal = "1.0"
+ufmt = "0.2.0"
 
