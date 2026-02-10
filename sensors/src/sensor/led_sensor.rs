@@ -7,7 +7,7 @@ impl<P, E> LedSensorPin<P>
 where
     P: OutputPin<Error = E>,
 {
-    pub fn new(pin: P) -> Self {
+    pub fn new(pin: P) -> impl LedSensor {
         Self { pin }
     }
 }

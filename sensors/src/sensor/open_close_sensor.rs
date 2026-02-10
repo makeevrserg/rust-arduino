@@ -12,7 +12,7 @@ impl<P, E> OpenCloseSensorPin<P>
 where
     P: InputPin<Error = E>,
 {
-    pub fn new(pin: P) -> Self {
+    pub fn new(pin: P) -> impl OpenCloseSensor {
         Self { pin }
     }
 }
