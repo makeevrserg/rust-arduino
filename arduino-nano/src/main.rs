@@ -2,10 +2,6 @@
 #![no_main]
 #![allow(dead_code)]
 
-mod sensor;
-
-use crate::sensor::LedSensor::{LedSensor, LedSensorPin};
-use crate::sensor::OpenCloseSensor::{OpenCloseSensor, OpenCloseSensorPin};
 use arduino_hal::delay_ms;
 use arduino_hal::port::Pin;
 use arduino_hal::I2c;
@@ -14,6 +10,8 @@ use graphics::component::{PulsatingCircle, RotatingSquare};
 use graphics::renderer::embedded_graphics::renderer_impl::EmbeddedGraphicsAdapter;
 use graphics::renderer::{Component, Renderer, Updatable};
 use graphics::Point;
+use sensors::sensor::led_sensor::{LedSensor, LedSensorPin};
+use sensors::sensor::open_close_sensor::{OpenCloseSensor, OpenCloseSensorPin};
 use ssd1306::{
     mode::DisplayConfig, rotation::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface,
     Ssd1306,

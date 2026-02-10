@@ -1,5 +1,5 @@
 [workspace]
-members = ["graphics", "arduino-nano"]
+members = ["graphics", "arduino-nano", "sensors"]
 resolver = "2"
 
 [workspace.package]

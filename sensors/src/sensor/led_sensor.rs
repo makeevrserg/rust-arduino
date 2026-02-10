@@ -25,6 +25,7 @@ where
         let _ = self.pin.set_high();
     }
 
+
     fn turn_off(&mut self) {
         let _ = self.pin.set_low();
     }
