@@ -4,19 +4,20 @@
 
 mod sensor;
 
+use crate::sensor::LedSensor::{LedSensor, LedSensorPin};
 use crate::sensor::OpenCloseSensor::{OpenCloseSensor, OpenCloseSensorPin};
 use arduino_hal::delay_ms;
 use arduino_hal::port::Pin;
 use arduino_hal::I2c;
 use embedded_hal::digital::{InputPin, OutputPin};
-use graphics::component::{Circle, Square};
+use graphics::component::{PulsatingCircle, RotatingSquare};
 use graphics::renderer::embedded_graphics::renderer_impl::EmbeddedGraphicsAdapter;
-use graphics::renderer::{Component, Renderer};
+use graphics::renderer::{Component, Renderer, Updatable};
+use graphics::Point;
 use ssd1306::{
     mode::DisplayConfig, rotation::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface,
     Ssd1306,
 };
-use crate::sensor::LedSensor::{LedSensor, LedSensorPin};
 
 #[panic_handler]
 fn my_panic(_info: &core::panic::PanicInfo) -> ! {
@@ -46,19 +47,21 @@ fn main() -> ! {
     let mut led = LedSensorPin::new(pins.d13.into_output());
     let mut door_sensor = OpenCloseSensorPin::new(pins.d2.into_pull_up_input());
 
-    let mut angle: i32 = 0;
-    let mut circle_radius = 3;
-    let mut circle_sign = 1;
+    let center = renderer.canvas().center();
+
+    let mut rotating_square = RotatingSquare::new(center, 30).with_rotation_step(45);
+    let mut pulsating_circle = PulsatingCircle::new(center, 0, 16)
+        .with_color(true)
+        .with_filled(true);
 
     loop {
         renderer.clear(false);
-        let center = renderer.canvas().center();
 
-        let square = Square::new(center, 30).with_rotation(angle);
-        square.draw(&mut renderer);
+        rotating_square.update();
+        rotating_square.draw(&mut renderer);
 
-        let circle = Circle::new(center, circle_radius, true, true);
-        circle.draw(&mut renderer);
+        pulsating_circle.update();
+        pulsating_circle.draw(&mut renderer);
 
         renderer.flush();
 
@@ -67,15 +70,6 @@ fn main() -> ! {
         } else {
             led.turn_off();
         }
-
-        angle = (angle + 45) % 6283;
-
-        if circle_radius <= 0 {
-            circle_sign = 1;
-        } else if circle_radius >= 16 {
-            circle_sign = -1;
-        }
-        circle_radius = circle_radius + circle_sign;
 
         delay_ms(10);
     }
