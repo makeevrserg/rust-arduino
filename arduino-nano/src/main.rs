@@ -23,6 +23,7 @@ use ssd1306::{
     mode::DisplayConfig, rotation::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface,
     Ssd1306,
 };
+use sensors::logger;
 use sensors::logger::{Loggable, Logger};
 
 #[panic_handler]
@@ -35,8 +36,10 @@ fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
 
-    let mut _serial = arduino_hal::default_serial!(dp, pins, 57600);
-    let mut loggable = Loggable::new(_serial);
+    let _serial = arduino_hal::default_serial!(dp, pins, 57600);
+    let logger = Loggable::new(_serial);
+    logger.log("Hello world");
+
     // I2C on Nano: SDA = A4, SCL = A5
     let i2c = I2c::new(
         dp.TWI,
@@ -81,8 +84,6 @@ fn main() -> ! {
         // Text::new("Arduino Nano", Point::new(10, 17), text_style)
         //     .draw(&mut display)
         //     .unwrap();
-
-        loggable.log("test log message");
         delay_ms(10);
     }
 }
