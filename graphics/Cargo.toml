@@ -1,0 +1,12 @@
+[package]
+name = "graphics"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[features]
+ssd1306 = ["dep:ssd1306"]
+
+[dependencies]
+embedded-graphics = "0.8"
+ssd1306 = { version = "0.8", optional = true }

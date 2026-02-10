@@ -1,4 +1,5 @@
-use crate::renderer::{Component, Point, Renderer};
+use crate::renderer::{Point, Renderer};
+use crate::component::Component;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Line {

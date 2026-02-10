@@ -1,6 +1,7 @@
-use crate::math::rotator::{Rotator};
-use crate::renderer::{Component, Point, Renderer};
+use crate::math::rotator::Rotator;
+use crate::renderer::{Point, Renderer};
 use crate::component::line::Line;
+use crate::component::Component;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Square {

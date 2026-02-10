@@ -63,4 +63,3 @@ pub fn cos_fast(deg: f32) -> f32 {
     // cos(x) = sin(x + π/2)
     sin_fast(deg + 90.0)
 }
-

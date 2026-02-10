@@ -2,10 +2,6 @@
 #![no_main]
 #![allow(dead_code)]
 
-mod component;
-mod math;
-mod renderer;
-
 use arduino_hal::I2c;
 use ssd1306::{
     mode::DisplayConfig,
@@ -14,11 +10,10 @@ use ssd1306::{
     I2CDisplayInterface,
     Ssd1306,
 };
-use crate::component::Square;
-use crate::renderer::{Component, Renderer};
-use renderer::embedded_graphics::renderer_impl::EmbeddedGraphicsAdapter;
+use graphics::component::{Circle, Square};
+use graphics::renderer::{Component, Renderer};
+use graphics::renderer::embedded_graphics::renderer_impl::EmbeddedGraphicsAdapter;
 use arduino_hal::delay_ms;
-use crate::component::circle::Circle;
 
 #[panic_handler]
 fn my_panic(_info: &core::panic::PanicInfo) -> ! {
@@ -68,7 +63,7 @@ fn main() -> ! {
 
         angle = (angle + 45) % 6283;
 
-        if (circle_radius <= 0) { circle_sign = 1; } else if (circle_radius >= 16) { circle_sign = -1; }
+        if circle_radius <= 0 { circle_sign = 1; } else if circle_radius >= 16 { circle_sign = -1; }
         circle_radius = circle_radius + circle_sign;
 
         led.toggle();
