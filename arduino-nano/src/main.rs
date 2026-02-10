@@ -26,6 +26,7 @@ use ssd1306::{
 use sensors::logger;
 use sensors::logger::{Loggable, Logger};
 
+
 #[panic_handler]
 fn my_panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}
@@ -37,9 +38,8 @@ fn main() -> ! {
     let pins = arduino_hal::pins!(dp);
 
     let _serial = arduino_hal::default_serial!(dp, pins, 57600);
-    let logger = Loggable::new(_serial);
-    logger.log("Hello world");
-
+    let mut logger = Loggable::new(_serial);
+    logger.log("#main started");
     // I2C on Nano: SDA = A4, SCL = A5
     let i2c = I2c::new(
         dp.TWI,
@@ -51,6 +51,7 @@ fn main() -> ! {
     let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
     display.init().unwrap();
+    logger.log("#main display initialized");
     let mut renderer = EmbeddedGraphicsAdapter::new(&mut display);
 
     let mut led = LedSensorPin::new(pins.d13.into_output());
@@ -63,6 +64,7 @@ fn main() -> ! {
         .with_color(true)
         .with_filled(true);
 
+    logger.log("#main entering loop");
     loop {
         renderer.clear(false);
 
