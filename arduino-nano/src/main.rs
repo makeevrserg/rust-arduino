@@ -42,8 +42,9 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
-    let _serial = arduino_hal::default_serial!(dp, pins, 57600);
-    let mut logger = UWriteLoggable::new(_serial);
+
+    let serial = arduino_hal::default_serial!(dp, pins, 57600);
+    let mut logger = UWriteLoggable::new(serial);
     logger.log("#main started");
     // I2C on Nano: SDA = A4, SCL = A5
     let i2c = I2c::new(

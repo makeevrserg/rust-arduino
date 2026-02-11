@@ -5,9 +5,5 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-embedded-hal = "1.0"
+embedded-hal = {version = "1.0",optional = true}
 ufmt = { version = "0.2.0", optional = true }
-
-[dependencies.avr-hal-generic]
-git = "https://github.com/Rahix/avr-hal"
-rev = "e5c8f37fe48419956e722490a82b9ca9b9fc61a2"

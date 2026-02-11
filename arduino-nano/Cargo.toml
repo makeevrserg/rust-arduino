@@ -22,7 +22,7 @@ ssd1306 = "0.8"
 
 
 graphics = { path = "../graphics", features = ["ssd1306", "embedded-graphics"] }
-sensors = { path = "../common", features = ["ufmt"] }
+sensors = { path = "../common", features = ["ufmt", "embedded-hal"] }
 
 [dependencies.avr-device]
 version = "0.8.1"
