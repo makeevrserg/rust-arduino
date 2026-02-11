@@ -21,7 +21,7 @@ display-interface-i2c = "0.5"
 ssd1306 = "0.8"
 
 
-graphics = { path = "../graphics", features = ["ssd1306"] }
+graphics = { path = "../graphics", features = ["ssd1306", "embedded-graphics"] }
 sensors = { path = "../common" }
 
 [dependencies.avr-device]
