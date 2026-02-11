@@ -2,6 +2,7 @@
 #![no_main]
 #![allow(dead_code)]
 
+use sensors::logger::logger::Logger;
 use arduino_hal::I2c;
 use graphics::component::{PulsatingCircle, RotatingSquare};
 use graphics::renderer::embedded_graphics::renderer_impl::EmbeddedGraphicsAdapter;
@@ -13,8 +14,7 @@ use ssd1306::{
     Ssd1306,
 };
 use sensors::log;
-use sensors::logger::{Loggable, Logger};
-
+use sensors::logger::ufmt_logger::UWriteLoggable;
 
 #[cfg(not(doc))]
 #[panic_handler]
@@ -24,7 +24,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     let dp = unsafe { arduino_hal::Peripherals::steal() };
     let pins = arduino_hal::pins!(dp);
     let serial = arduino_hal::default_serial!(dp, pins, 57600);
-    let mut logger = Loggable::new(serial);
+    let mut logger = UWriteLoggable::new(serial);
 
     logger.log("Firmware panic!\r");
 
@@ -43,7 +43,7 @@ fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
     let _serial = arduino_hal::default_serial!(dp, pins, 57600);
-    let mut logger = Loggable::new(_serial);
+    let mut logger = UWriteLoggable::new(_serial);
     logger.log("#main started");
     // I2C on Nano: SDA = A4, SCL = A5
     let i2c = I2c::new(
