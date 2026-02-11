@@ -2,41 +2,46 @@
 #![no_main]
 #![allow(dead_code)]
 
-use arduino_hal::{delay_ms, DefaultClock};
-use arduino_hal::hal::Atmega;
-use arduino_hal::port::Pin;
 use arduino_hal::I2c;
-use arduino_hal::pac::USART0;
-use embedded_graphics::Drawable;
-use embedded_graphics::mono_font::ascii::FONT_6X10;
-use embedded_graphics::mono_font::MonoTextStyle;
-use embedded_graphics::pixelcolor::BinaryColor;
-use embedded_graphics::text::Text;
-use embedded_hal::digital::{InputPin, OutputPin};
 use graphics::component::{PulsatingCircle, RotatingSquare};
 use graphics::renderer::embedded_graphics::renderer_impl::EmbeddedGraphicsAdapter;
 use graphics::renderer::{Component, Renderer, Updatable};
-use graphics::Point;
 use sensors::sensor::led_sensor::{LedSensor, LedSensorPin};
 use sensors::sensor::open_close_sensor::{OpenCloseSensor, OpenCloseSensorPin};
 use ssd1306::{
     mode::DisplayConfig, rotation::DisplayRotation, size::DisplaySize128x64, I2CDisplayInterface,
     Ssd1306,
 };
-use sensors::logger;
+use sensors::log;
 use sensors::logger::{Loggable, Logger};
 
 
+#[cfg(not(doc))]
 #[panic_handler]
-fn my_panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
+fn panic(info: &core::panic::PanicInfo) -> ! {
+    avr_device::interrupt::disable();
+
+    let dp = unsafe { arduino_hal::Peripherals::steal() };
+    let pins = arduino_hal::pins!(dp);
+    let serial = arduino_hal::default_serial!(dp, pins, 57600);
+    let mut logger = Loggable::new(serial);
+
+    logger.log("Firmware panic!\r");
+
+    if let Some(loc) = info.location() {
+        log!(logger, "  At {}:{}:{}\r", loc.file(), loc.line(), loc.column());
+    }
+    let mut led = LedSensorPin::new(pins.d13.into_output());
+    loop {
+        led.toggle();
+        arduino_hal::delay_ms(100);
+    }
 }
 
 #[arduino_hal::entry]
 fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
-
     let _serial = arduino_hal::default_serial!(dp, pins, 57600);
     let mut logger = Loggable::new(_serial);
     logger.log("#main started");
@@ -86,6 +91,6 @@ fn main() -> ! {
         // Text::new("Arduino Nano", Point::new(10, 17), text_style)
         //     .draw(&mut display)
         //     .unwrap();
-        delay_ms(10);
+        arduino_hal::delay_ms(10);
     }
 }

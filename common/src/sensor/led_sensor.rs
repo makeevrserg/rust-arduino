@@ -1,13 +1,12 @@
-use embedded_hal::digital::OutputPin;
-pub struct LedSensorPin<P> {
-    pin: P,
+use avr_hal_generic::port::{mode, PinOps};
+use avr_hal_generic::port::Pin;
+
+pub struct LedSensorPin<PIN: PinOps> {
+    pin: Pin<mode::Output, PIN>,
 }
 
-impl<P, E> LedSensorPin<P>
-where
-    P: OutputPin<Error = E>,
-{
-    pub fn new(pin: P) -> impl LedSensor {
+impl<PIN: PinOps> LedSensorPin<PIN> {
+    pub fn new(pin: Pin<mode::Output, PIN>) -> impl LedSensor {
         Self { pin }
     }
 }
@@ -15,18 +14,21 @@ where
 pub trait LedSensor {
     fn turn_on(&mut self);
     fn turn_off(&mut self);
+    fn toggle(&mut self);
 }
 
-impl<P, E> LedSensor for LedSensorPin<P>
-where
-    P: OutputPin<Error = E>,
+impl<PIN: PinOps> LedSensor for LedSensorPin<PIN>
 {
     fn turn_on(&mut self) {
-        let _ = self.pin.set_high();
+        self.pin.set_high();
     }
 
 
     fn turn_off(&mut self) {
-        let _ = self.pin.set_low();
+        self.pin.set_low();
+    }
+
+    fn toggle(&mut self) {
+        self.pin.toggle();
     }
 }
